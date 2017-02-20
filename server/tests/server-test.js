@@ -4,11 +4,20 @@ const request = require('supertest');
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
 
+const todos = [{
+	text: 'Primer prueba todo',
+}, {
+	text: 'Segunda prueba todo'
+}];
+
 beforeEach((done) => {
 	Todo.remove({}).then(() => {
+		Todo.insertMany(todos);
+	}).then(() => {
 		done();
 	});
 });
+
 
 	describe('POST /todos', () => {
 		it('Debe de crearse un nuevo objeto Todo', (done) => {
@@ -25,7 +34,7 @@ beforeEach((done) => {
 					return done(error);
 				}
 
-				Todo.find().then((todos) => {
+				Todo.find({text}).then((todos) => {
 					expect(todos.length).toBe(1);
 					expect(todos[0].text).toBe(text);
 					done();
@@ -44,7 +53,7 @@ beforeEach((done) => {
 			}
 
 			Todo.find().then((todos) => {
-				expect(todos.length).toBe(0);
+				expect(todos.length).toBe(2);
 				done();
 			}).catch((error) => {
 				done(error);
@@ -52,3 +61,11 @@ beforeEach((done) => {
 		});
 	});
 });
+
+	describe('GET /todos', () => {
+		it('Debería de obtener todos los objetos', (done)=> {
+			request(app).get('/todos').expect(200).expect((response) => {
+				expect(response.body.todos.length).toBe(2);
+			}).end(done);
+		});
+	})
