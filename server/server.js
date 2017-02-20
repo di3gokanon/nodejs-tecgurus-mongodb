@@ -25,6 +25,10 @@ app.post('/todos', (request, response) => {
 app.listen(3000, () => {
 	console.log('Servidor iniciado en el puerto 3000');
 });
+
+module.exports = {
+	app: app
+}
 /* 
 var objTodo = new Todo({
 	text: 'Cocinando la cena'
