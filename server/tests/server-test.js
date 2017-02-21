@@ -90,13 +90,4 @@ beforeEach((done) => {
 			.expect(404)
 			.end(done);
 		});
-
-		/*
-		it('Debería de regresar un 404 para los objetos no encontrados con relacion al id', (done) => {
-			request(app)
-			.get('/todos/123abc')
-			.expect(404)
-			.end(done);
-		});
-		*/
 	});
