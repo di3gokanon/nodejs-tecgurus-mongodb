@@ -7,7 +7,7 @@ var {Todo} = require('./models/todo');
 var {Usuario} = require('./models/user');
 
 var app = express();
-
+const port = process.env.PORT || 3000;
 //Se manda la información en json.
 app.use(bodyParser.json());
 
@@ -54,8 +54,8 @@ app.get('/todos/:id', (request, response) => {
 
 });
 
-app.listen(3000, () => {
-	console.log('Servidor iniciado en el puerto 3000');
+app.listen(port, () => {
+	console.log(`Servidor iniciado en el puerto ${port}`);
 });
 
 module.exports = {
