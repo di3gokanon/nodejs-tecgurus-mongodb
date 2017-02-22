@@ -10,7 +10,9 @@ const todos = [{
 	text: 'Primer prueba todo',
 }, {
 	_id: new ObjectID(),
-	text: 'Segunda prueba todo'
+	text: 'Segunda prueba todo',
+	completed: true,
+	completedAt: 333
 }];
 
 beforeEach((done) => {
@@ -42,28 +44,28 @@ beforeEach((done) => {
 					expect(todos[0].text).toBe(text);
 					done();
 				}).catch((error) => done(error));
+			});
 		});
-	});
 
-	it('No debe de crearse un objeto todo con datos inválidos', (done) => {
-		request(app)
-		.post('/todos')
-		.send({})
-		.expect(400)
-		.end((error, response) => {
-			if(error) {
-				return done(error);
-			}
+		it('No debe de crearse un objeto todo con datos inválidos', (done) => {
+			request(app)
+			.post('/todos')
+			.send({})
+			.expect(400)
+			.end((error, response) => {
+				if(error) {
+					return done(error);
+				}
 
-			Todo.find().then((todos) => {
-				expect(todos.length).toBe(2);
-				done();
-			}).catch((error) => {
-				done(error);
+				Todo.find().then((todos) => {
+					expect(todos.length).toBe(2);
+					done();
+				}).catch((error) => {
+					done(error);
+				});
 			});
 		});
 	});
-});
 
 	describe('GET /todos', () => {
 		it('Debería de obtener todos los objetos', (done)=> {
@@ -117,8 +119,6 @@ beforeEach((done) => {
 			});
 		});
 
-		
-
 		it('Debería regresar un 404 si no elimina registros', (done) => {
 			var hexId = new ObjectID().toHexString();
 
@@ -127,11 +127,42 @@ beforeEach((done) => {
 			.expect(404)
 			.end(done);
 		});
+	});
 
-		it('Debería regresar un 4040 si el ObjectID es inválido', (done) => {
+	describe('PATCH /todos/:id', () => {
+		it('Debería de actualizar el objeto', (done) => {
+			var hexId = todos[0]._id.toHexString();
+			var text = 'Probando actualización de objetos';
 
+			request(app)
+			.patch(`/todos/${hexId}`)
+			.send({
+				completed: true,
+				text
+			}).expect(200)
+			.expect((response) => {
+				expect(response.body.todo.text).toBe(text);
+				expect(response.body.todo.completed).toBe(true);
+				expect(response.body.todo.completedAt).toBeA('number');
+
+			}).end(done);
 		});
 
-		
+		it('Debería limpiar la variable completedAt cuando el objeto no este completado', (done) => {
+			var hexId = todos[1]._id.toHexString();
+			var text = 'Probando actualización limpiando la variable completedAt';
 
-	})
+			request(app)	
+			.patch(`/todos/${hexId}`)
+			.send({
+				completed: false,
+				text
+			}).expect(200)
+			.expect((response) => {
+				expect(response.body.todo.text).toBe(text);
+				expect(response.body.todo.completed).toBe(false);
+				expect(response.body.todo.completedAt).toNotExist();
+
+			}).end(done);
+		});
+	});
