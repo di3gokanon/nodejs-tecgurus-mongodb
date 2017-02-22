@@ -91,3 +91,47 @@ beforeEach((done) => {
 			.end(done);
 		});
 	});
+
+	describe('DELETE /todos/:id', () => {
+		it('Debería de eliminar todos los registros', (done) => {
+			var hexId = todos[1]._id.toHexString();
+
+			request(app)
+			.delete(`/todos/${hexId}`)
+			.expect(200)
+			.expect((response) => {
+				expect(response.body._id).toBe(hexId);
+			})
+			.end((error, response) => {
+				//Si hay un error.
+				if(error) {
+					console.log('Error...');
+					return done(error);
+				}
+
+				Todo.findById(hexId).then((todo) => {
+					console.log('Buscando por id...');
+					expect(todo).toNotExist();
+					done();
+				}).catch((error) => done(error));
+			});
+		});
+
+		
+
+		it('Debería regresar un 404 si no elimina registros', (done) => {
+			var hexId = new ObjectID().toHexString();
+
+			request(app)
+			.get(`/todos/${hexId}`)
+			.expect(404)
+			.end(done);
+		});
+
+		it('Debería regresar un 4040 si el ObjectID es inválido', (done) => {
+
+		});
+
+		
+
+	})
