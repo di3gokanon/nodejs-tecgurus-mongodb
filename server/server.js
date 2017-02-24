@@ -101,6 +101,19 @@ app.patch('/todos/:id', (request, response) => {
 	})
 });
 
+app.post('/users', (request, response) => {
+	var body = _.pick(request.body, ['email', 'password']);
+	var user = new Usuario(body);
+
+	user.save().then(() => {
+		return user.generateAuthToken();
+	}).then((token) => {
+		response.header('x-auth', token).send(user);
+	}).catch((error) => {
+		response.status(400).send(error);
+	});
+});
+
 app.listen(port, () => {
 	console.log(`Servidor iniciado en el puerto ${port}`);
 });
