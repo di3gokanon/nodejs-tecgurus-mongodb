@@ -4,24 +4,11 @@ const {ObjectID} = require('mongodb');
 
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
+const {Usuario} = require('./../models/user');
+const {todos, populateTodos, users, populateUsers} = require('./seed/seed');
 
-const todos = [{
-	_id: new ObjectID(),
-	text: 'Primer prueba todo',
-}, {
-	_id: new ObjectID(),
-	text: 'Segunda prueba todo',
-	completed: true,
-	completedAt: 333
-}];
-
-beforeEach((done) => {
-	Todo.remove({}).then(() => {
-		Todo.insertMany(todos);
-	}).then(() => {
-		done();
-	});
-});
+beforeEach(populateUsers);
+beforeEach(populateTodos);
 
 
 	describe('POST /todos', () => {
@@ -165,4 +152,78 @@ beforeEach((done) => {
 
 			}).end(done);
 		});
+	});
+
+	describe('GET /users/me', () => {
+		it('Debería regresar un usuario si está autentificado', (done) => {
+			request(app)
+			.get('/users/me')
+			.set('x-auth', users[0].tokens[0].token)
+			.expect(200)
+			.expect((resultado) => {
+				expect(resultado.body._id).toBe(users[0]._id.toHexString());
+				expect(resultado.body.email).toBe(users[0].email);				
+			})
+			.end(done);
+		});
+
+		it('Debería regresar un estado 401 si no está autentificado', (done) => {
+			request(app)
+			.get('/users/me')
+			.expect(401)
+			.expect((res) => {
+				expect(res.body).toEqual({});
+			})
+			.end(done);
+		});		
+	});
+
+	describe('POST /users', () => {
+		it('Debe de crearse un usuario', (done) => {
+			var email = 'bguerrero@tecgurus.net';
+			var password = '123acb!';
+
+			request(app)
+			.post('/users')
+			.send({email, password})
+			.expect(200)
+			.expect((res) => {
+				expect(res.headers['x-auth']).toExist();
+				expect(res.body._id).toExist();
+				expect(res.body.email).toBe(email);
+			})
+			.end((err) => {
+				if(err) {
+					return done(err);
+				}
+
+				Usuario.findOne({email}).then((user) => {
+					expect(user).toExist();
+					expect(user.password).toNotBe(password);
+					done();
+				});
+			});
+		});
+
+		it('Debería de regresar errores de validación si la petición es inválida', (done) => {
+			request(app)
+			.post('/users')
+			.send({
+				email: 'and',
+				password: '123'
+			})
+			.expect(400)
+			.end(done);
+		});	
+
+		it('No debería de crear un usuario si el email está repetido', (done) => {
+			request(app)
+			.post('/users')
+			.send({
+				email: users[0].email,
+				password: 'Password123'
+			})
+			.expect(400)
+			.end(done);
+		});					
 	});
