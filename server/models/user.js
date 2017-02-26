@@ -78,6 +78,27 @@ UsuarioSchema.statics.findByToken = function (token) {
 	})
 };
 
+UsuarioSchema.statics.findByCredentials = function(email, password) {
+	var Usuario = this;
+
+	return Usuario.findOne({email}).then((user) => {
+		if(!user) {
+			return Promise.reject();
+		}
+
+		return new Promise((resolve, reject) => {
+			bcrypt.compare(password, user.password, (err, res) => {
+				if(res) {
+					resolve(user);
+				} else {
+					reject();
+				}
+			});
+		});
+		
+	});
+};
+
 //Se ejecuta la función "pre" del middlaware.
 UsuarioSchema.pre('save', function(next) {
 	var user = this;
