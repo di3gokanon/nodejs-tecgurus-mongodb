@@ -57,25 +57,33 @@ UsuarioSchema.methods.generateAuthToken = function () {
 	});
 };
 
+UsuarioSchema.methods.removeToken = function(token) {
+	var user = this;
+
+	return user.update({
+		$pull: {
+			tokens: {token}
+		}
+	});
+};
+
 UsuarioSchema.statics.findByToken = function (token) {
-	var Usuario = this;
+	var User = this;
 	var decoded;
 
 	try {
 		//Se comprueba si existe el token
-		decoded = jwt.verify(token, '');
+		decoded = jwt.verify(token, 'password');
 	} catch(exception) {
-		return new Promise((resolve, reject) => {
-			reject();
-		});
+		return Promise.reject();
 	}
 
 	//Se recupera un usuario existente con el token a consultar.
-	return Usuario.findOne({
+	return User.findOne({
 		_id: decoded._id,
 		'tokens.token': token,
 		'tokens.access': 'auth'
-	})
+	});
 };
 
 UsuarioSchema.statics.findByCredentials = function(email, password) {

@@ -85,6 +85,8 @@ beforeEach(populateTodos);
 		it('Debería de eliminar todos los registros', (done) => {
 			var hexId = todos[1]._id.toHexString();
 
+			console.log('AUTH: ', hexId);
+
 			request(app)
 			.delete(`/todos/${hexId}`)
 			.expect(200)
@@ -94,7 +96,6 @@ beforeEach(populateTodos);
 			.end((error, response) => {
 				//Si hay un error.
 				if(error) {
-					console.log('Error...');
 					return done(error);
 				}
 
@@ -281,4 +282,24 @@ beforeEach(populateTodos);
 				}).catch((err) => done(err));
 			});
 		});		
+	});
+
+	describe('DELETE /users/me/token', () => {
+		it('Debe eliminar el token de autenticación al cerrar sesión', (done) => {
+			console.log('TOKEN USUARIO: ', users[0].tokens[0].token);
+			request(app)
+			.delete('/users/me/token')
+			.set('x-auth', users[0].tokens[0].token)
+			.expect(200)
+			.end((err, response) => {
+				if (err) {
+					return done(err);
+				}
+
+				Usuario.findById(users[0]._id).then((user) => {
+					expect(user.tokens.length).toBe(0);
+					done();
+				}).catch((err) => done(err));
+			});
+		});
 	});

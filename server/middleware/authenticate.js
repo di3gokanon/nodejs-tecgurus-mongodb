@@ -1,22 +1,24 @@
 var {Usuario} = require('./../models/user');
 
 //Creando middleware
-var authenticate = (request, response, next) => {
-	var token = request.header('x-auth');
-	console.log(token);
+var authenticate = (req, res, next) => {
+	var token = req.header('x-auth');
+	
 	Usuario.findByToken(token).then((user) => {
+		console.log(user);
 		if(!user) {
-			return Promise().reject();
+			return Promise.reject();
 		}
 
-		request.user = user;
-		request.token = token;
+		req.user = user;
+		req.token = token;
 		next();
 	}).catch((e) => {
-		response.status(401).send();
+		res.status(401).send();
+		console.log(e);
 	});
 };
 
 module.exports = {
 	authenticate: authenticate
-}
+};
